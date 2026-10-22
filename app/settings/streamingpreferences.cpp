@@ -32,6 +32,8 @@
 #define SER_QUITAPPAFTER "quitAppAfter"
 #define SER_ABSMOUSEMODE "mouseacceleration"
 #define SER_ABSTOUCHMODE "abstouchmode"
+#define SER_MOUSESENSITIVITY "mousesensitivity"
+#define SER_MOUSESENSITIVITYENABLED "mousesensitivityenabled"
 #define SER_STARTWINDOWED "startwindowed"
 #define SER_FRAMEPACING "framepacing"
 #define SER_CONNWARNINGS "connwarnings"
@@ -137,6 +139,9 @@ void StreamingPreferences::reload()
     quitAppAfter = settings.value(SER_QUITAPPAFTER, false).toBool();
     absoluteMouseMode = settings.value(SER_ABSMOUSEMODE, false).toBool();
     absoluteTouchMode = settings.value(SER_ABSTOUCHMODE, true).toBool();
+    mouseSensitivity = clampMouseSensitivity(settings.value(SER_MOUSESENSITIVITY,
+                                                             getDefaultMouseSensitivity()).toInt());
+    mouseSensitivityEnabled = settings.value(SER_MOUSESENSITIVITYENABLED, true).toBool();
     framePacing = settings.value(SER_FRAMEPACING, false).toBool();
     connectionWarnings = settings.value(SER_CONNWARNINGS, true).toBool();
     configurationWarnings = settings.value(SER_CONFWARNINGS, true).toBool();
@@ -362,6 +367,8 @@ void StreamingPreferences::save()
     settings.setValue(SER_SWAPFACEBUTTONS, swapFaceButtons);
     settings.setValue(SER_CAPTURESYSKEYS, captureSysKeysMode);
     settings.setValue(SER_KEEPAWAKE, keepAwake);
+    settings.setValue(SER_MOUSESENSITIVITY, mouseSensitivity);
+    settings.setValue(SER_MOUSESENSITIVITYENABLED, mouseSensitivityEnabled);
 }
 
 int StreamingPreferences::getDefaultBitrate(int width, int height, int fps, bool yuv444)
@@ -418,4 +425,60 @@ int StreamingPreferences::getDefaultBitrate(int width, int height, int fps, bool
     }
 
     return qRound(resolutionFactor * frameRateFactor) * 1000;
+}
+
+int StreamingPreferences::getDefaultMouseSensitivity()
+{
+    return 100;
+}
+
+int StreamingPreferences::getMinMouseSensitivity()
+{
+    // Below this, small mouse movements would round away to nothing even with
+    // fractional accumulation, making the cursor feel stuck.
+    return 10;
+}
+
+int StreamingPreferences::getMaxMouseSensitivity()
+{
+    return 10000;
+}
+
+int StreamingPreferences::clampMouseSensitivity(int sensitivity)
+{
+    return qBound(getMinMouseSensitivity(), sensitivity, getMaxMouseSensitivity());
+}
+
+// Values the mouse sensitivity hotkeys move between. Walking a shared list in
+// both directions keeps the values identical whether the user is increasing or
+// decreasing the sensitivity, and keeps every value a round number.
+static const int k_MouseSensitivityDetents[] = {
+    10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100,
+    110, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500,
+    600, 700, 800, 900, 1000,
+    1250, 1500, 1750, 2000, 2500, 3000, 3500, 4000, 4500, 5000,
+    5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000
+};
+
+int StreamingPreferences::stepMouseSensitivity(int sensitivity, int stepDirection)
+{
+    const int detentCount = sizeof(k_MouseSensitivityDetents) / sizeof(k_MouseSensitivityDetents[0]);
+
+    if (stepDirection > 0) {
+        for (int i = 0; i < detentCount; i++) {
+            if (k_MouseSensitivityDetents[i] > sensitivity) {
+                return k_MouseSensitivityDetents[i];
+            }
+        }
+    }
+    else {
+        for (int i = detentCount - 1; i >= 0; i--) {
+            if (k_MouseSensitivityDetents[i] < sensitivity) {
+                return k_MouseSensitivityDetents[i];
+            }
+        }
+    }
+
+    // Already at the lower or upper end of the range
+    return sensitivity;
 }

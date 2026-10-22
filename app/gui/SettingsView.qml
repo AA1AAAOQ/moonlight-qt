@@ -1347,6 +1347,92 @@ Flickable {
                                   qsTr("NOTE: Due to a bug in GeForce Experience, this option may not work properly if your host PC has multiple monitors.")
                 }
 
+                CheckBox {
+                    id: mouseSensitivityEnabledCheck
+                    hoverEnabled: true
+                    width: parent.width
+                    text: qsTr("Adjust mouse sensitivity for games")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.mouseSensitivityEnabled
+                    onCheckedChanged: {
+                        // The configured sensitivity is kept while this is unchecked, so
+                        // re-enabling restores the value that was tuned before.
+                        StreamingPreferences.mouseSensitivityEnabled = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 10000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("When unchecked, mouse motion is sent to the host exactly as it is captured, without any sensitivity adjustment.") + " " +
+                                  qsTr("You can toggle this while streaming using Ctrl+Alt+Shift+A.")
+                }
+
+                Label {
+                    width: parent.width
+                    id: mouseSensitivityTitle
+                    text: mouseSensitivityEnabledCheck.checked ?
+                              qsTr("Mouse sensitivity: %1%").arg(StreamingPreferences.mouseSensitivity) :
+                              qsTr("Mouse sensitivity: off")
+                    font.pointSize: 12
+                    wrapMode: Text.Wrap
+                    opacity: mouseSensitivityEnabledCheck.checked ? 1.0 : 0.5
+                }
+
+                Label {
+                    width: parent.width
+                    id: mouseSensitivityDesc
+                    text: qsTr("Raise this if mouse movement feels too slow in a game, even after increasing the sensitivity in the game's own settings. 100% sends mouse motion to the host unchanged.") + " " +
+                          qsTr("This only applies to games that use the captured mouse (not remote desktop mouse mode).") + "\n\n" +
+                          qsTr("You can also adjust it while streaming using Ctrl+Alt+Shift+Up and Ctrl+Alt+Shift+Down, or turn the adjustment off with Ctrl+Alt+Shift+A.")
+                    font.pointSize: 9
+                    wrapMode: Text.Wrap
+                    opacity: mouseSensitivityEnabledCheck.checked ? 1.0 : 0.5
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: 5
+
+                    Slider {
+                        id: mouseSensitivitySlider
+
+                        from: StreamingPreferences.getMinMouseSensitivity()
+                        to: StreamingPreferences.getMaxMouseSensitivity()
+                        stepSize: 5
+                        enabled: mouseSensitivityEnabledCheck.checked
+
+                        // QML clamps the initial value against the slider's default range,
+                        // so writes to the preference are ignored until the slider has been
+                        // initialized with the stored value.
+                        property bool initialized: false
+
+                        width: Math.min(mouseSensitivityDesc.implicitWidth,
+                                        parent.width - (resetMouseSensitivityButton.visible ? resetMouseSensitivityButton.width + parent.spacing : 0))
+
+                        Component.onCompleted: {
+                            value = StreamingPreferences.mouseSensitivity
+                            initialized = true
+                        }
+
+                        onValueChanged: {
+                            if (initialized) {
+                                StreamingPreferences.mouseSensitivity = value
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: resetMouseSensitivityButton
+                        text: qsTr("Use Default (%1%)").arg(StreamingPreferences.getDefaultMouseSensitivity())
+                        visible: StreamingPreferences.mouseSensitivity !== StreamingPreferences.getDefaultMouseSensitivity()
+                        enabled: mouseSensitivityEnabledCheck.checked
+                        onClicked: {
+                            StreamingPreferences.mouseSensitivity = StreamingPreferences.getDefaultMouseSensitivity()
+                            mouseSensitivitySlider.value = StreamingPreferences.getDefaultMouseSensitivity()
+                        }
+                    }
+                }
+
                 Row {
                     spacing: 5
                     width: parent.width

@@ -3,6 +3,8 @@
 #include <Limelight.h>
 #include "SDL_compat.h"
 
+#include <cstdint>
+
 #define VK_0 0x30
 #define VK_A 0x41
 
@@ -21,6 +23,103 @@
 #define GET_KEYPRESS_CODE(x) ((short)((x) & 0xFFFF))
 #define GET_KEYPRESS_EXTENDED_MODIFIER(x) ((char)(((x) >> 16) & 0xFF))
 #define GET_KEYPRESS_FLAGS(x) ((char)(((x) >> 24) & 0xFF))
+
+// How long the "Mouse sensitivity: N%" overlay stays on screen
+#define MOUSE_SENSITIVITY_OVERLAY_DURATION_MS 1500
+
+// Generation counter used to make sure an old timer doesn't hide an overlay
+// that was displayed for a newer sensitivity value.
+static Uint32 s_MouseSensitivityOverlayGeneration;
+
+static Uint32 hideMouseSensitivityOverlayTimerCallback(Uint32 interval, void* param)
+{
+    // Only hide the overlay if no newer value has been displayed since this
+    // timer was started. The session may also have ended while we were
+    // waiting, in which case there's nothing left to update.
+    if (s_MouseSensitivityOverlayGeneration == (Uint32)(uintptr_t)param) {
+        Session* session = Session::get();
+        if (session != nullptr) {
+            session->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, false);
+        }
+    }
+
+    // One-shot timer
+    return 0;
+}
+
+void SdlInputHandler::adjustMouseSensitivity(int stepDirection)
+{
+    StreamingPreferences* prefs = StreamingPreferences::get();
+
+    if (!prefs->mouseSensitivityEnabled) {
+        // The sensitivity adjustment is disabled, so the hotkeys do nothing
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Mouse sensitivity adjustment is disabled");
+        return;
+    }
+
+    int currentSensitivity = prefs->mouseSensitivity;
+
+    // Both directions move between the same values, so decreasing the
+    // sensitivity always undoes an increase.
+    int newSensitivity = StreamingPreferences::clampMouseSensitivity(
+                StreamingPreferences::stepMouseSensitivity(currentSensitivity, stepDirection));
+
+    if (newSensitivity == currentSensitivity) {
+        // Already at the lower or upper limit
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Mouse sensitivity is already at its limit of %d%%",
+                    newSensitivity);
+        showMouseSensitivityOverlay();
+        return;
+    }
+
+    prefs->mouseSensitivity = newSensitivity;
+
+    // Persist it right away, so a value that was tuned while streaming is
+    // still in effect the next time the user starts a stream.
+    prefs->save();
+
+    // Apply the change to the running stream
+    m_MouseSensitivity = newSensitivity / 100.0f;
+
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                "Mouse sensitivity changed to %d%%",
+                newSensitivity);
+
+    showMouseSensitivityOverlay();
+}
+
+void SdlInputHandler::showMouseSensitivityOverlay()
+{
+    Session* session = Session::get();
+    if (session == nullptr) {
+        // Nothing to display the value on
+        return;
+    }
+
+    QByteArray text;
+    StreamingPreferences* prefs = StreamingPreferences::get();
+
+    if (prefs->mouseSensitivityEnabled) {
+        text = QString("Mouse sensitivity: %1%").arg(prefs->mouseSensitivity).toUtf8();
+    }
+    else {
+        text = QString("Mouse sensitivity adjustment: off (100%)").toUtf8();
+    }
+
+    session->getOverlayManager().updateOverlayText(Overlay::OverlayStatusUpdate, text.constData());
+    session->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, true);
+
+    // Restart the timer, so the overlay stays up as long as the user keeps
+    // adjusting the sensitivity.
+    if (m_MouseSensitivityOverlayTimer != 0) {
+        SDL_RemoveTimer(m_MouseSensitivityOverlayTimer);
+    }
+    m_MouseSensitivityOverlayTimer = SDL_AddTimer(MOUSE_SENSITIVITY_OVERLAY_DURATION_MS,
+                                                  hideMouseSensitivityOverlayTimerCallback,
+                                                  (void*)(uintptr_t)(++s_MouseSensitivityOverlayGeneration));
+}
 
 void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
 {
@@ -176,6 +275,43 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
 
         updateKeyboardGrabState();
         break;
+
+    case KeyComboIncreaseMouseSensitivity:
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected mouse sensitivity increase combo");
+        adjustMouseSensitivity(+1);
+        break;
+
+    case KeyComboDecreaseMouseSensitivity:
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected mouse sensitivity decrease combo");
+        adjustMouseSensitivity(-1);
+        break;
+
+    case KeyComboToggleMouseSensitivity:
+    {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected mouse sensitivity adjustment toggle combo");
+
+        StreamingPreferences* prefs = StreamingPreferences::get();
+
+        // Toggling this off leaves the configured sensitivity alone, so toggling
+        // it back on restores the value that was tuned before.
+        prefs->mouseSensitivityEnabled = !prefs->mouseSensitivityEnabled;
+
+        // Persist the toggle, so it applies to future streams too
+        prefs->save();
+
+        // Apply the change to the running stream
+        m_MouseSensitivity = prefs->mouseSensitivityEnabled ? prefs->mouseSensitivity / 100.0f : 1.0f;
+
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Mouse sensitivity adjustment %s",
+                    prefs->mouseSensitivityEnabled ? "enabled" : "disabled");
+
+        showMouseSensitivityOverlay();
+        break;
+    }
 
     default:
         Q_UNREACHABLE();

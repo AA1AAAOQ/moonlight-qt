@@ -29,6 +29,10 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
       m_AbsoluteMouseMode(prefs.absoluteMouseMode),
       m_AbsoluteTouchMode(prefs.absoluteTouchMode),
       m_DisabledTouchFeedback(false),
+      m_MouseSensitivity(prefs.mouseSensitivityEnabled ? prefs.mouseSensitivity / 100.0f : 1.0f),
+      m_MouseSensitivityRemainderX(0.0f),
+      m_MouseSensitivityRemainderY(0.0f),
+      m_MouseSensitivityOverlayTimer(0),
       m_LeftButtonReleaseTimer(0),
       m_RightButtonReleaseTimer(0),
       m_DragTimer(0),
@@ -135,6 +139,21 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     m_SpecialKeyCombos[KeyComboToggleKeyboardGrab].scanCode = SDL_SCANCODE_K;
     m_SpecialKeyCombos[KeyComboToggleKeyboardGrab].enabled = WMUtils::isRunningDesktopEnvironment();
 
+    m_SpecialKeyCombos[KeyComboIncreaseMouseSensitivity].keyCombo = KeyComboIncreaseMouseSensitivity;
+    m_SpecialKeyCombos[KeyComboIncreaseMouseSensitivity].keyCode = SDLK_UP;
+    m_SpecialKeyCombos[KeyComboIncreaseMouseSensitivity].scanCode = SDL_SCANCODE_UP;
+    m_SpecialKeyCombos[KeyComboIncreaseMouseSensitivity].enabled = true;
+
+    m_SpecialKeyCombos[KeyComboDecreaseMouseSensitivity].keyCombo = KeyComboDecreaseMouseSensitivity;
+    m_SpecialKeyCombos[KeyComboDecreaseMouseSensitivity].keyCode = SDLK_DOWN;
+    m_SpecialKeyCombos[KeyComboDecreaseMouseSensitivity].scanCode = SDL_SCANCODE_DOWN;
+    m_SpecialKeyCombos[KeyComboDecreaseMouseSensitivity].enabled = true;
+
+    m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].keyCombo = KeyComboToggleMouseSensitivity;
+    m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].keyCode = SDLK_a;
+    m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].scanCode = SDL_SCANCODE_A;
+    m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].enabled = true;
+
     m_OldIgnoreDevices = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES);
     m_OldIgnoreDevicesExcept = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT);
 
@@ -237,6 +256,7 @@ SdlInputHandler::~SdlInputHandler()
     SDL_RemoveTimer(m_LeftButtonReleaseTimer);
     SDL_RemoveTimer(m_RightButtonReleaseTimer);
     SDL_RemoveTimer(m_DragTimer);
+    SDL_RemoveTimer(m_MouseSensitivityOverlayTimer);
 
 #if !SDL_VERSION_ATLEAST(2, 0, 9)
     SDL_QuitSubSystem(SDL_INIT_HAPTIC);

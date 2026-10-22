@@ -19,6 +19,7 @@ You can follow development on our [Discord server](https://moonlight-stream.org/
  - 10-point multitouch support (Sunshine only)
  - Gamepad support with force feedback and motion controls for up to 16 players
  - Support for both pointer capture (for games) and direct mouse control (for remote desktop)
+ - Adjustable mouse sensitivity multiplier (up to 10000%) for games whose own sensitivity setting isn't enough, adjusted while streaming with Ctrl+Alt+Shift+Up/Down and toggled with Ctrl+Alt+Shift+A
  - Support for passing system-wide keyboard shortcuts like Alt+Tab to the host
  
 ## Downloads

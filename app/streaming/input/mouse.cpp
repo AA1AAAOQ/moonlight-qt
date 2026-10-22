@@ -90,6 +90,39 @@ void SdlInputHandler::handleMouseButtonEvent(SDL_MouseButtonEvent* event)
                            button);
 }
 
+void SdlInputHandler::sendMouseMoveEvent(Sint32 deltaX, Sint32 deltaY)
+{
+    // Apply the user's sensitivity multiplier. The fractional part of the scaled
+    // movement is carried over to the next event, so slow movements don't get
+    // truncated away at low multipliers and fast movements keep their precision
+    // at high multipliers.
+    if (m_MouseSensitivity != 1.0f) {
+        float scaledX = deltaX * m_MouseSensitivity + m_MouseSensitivityRemainderX;
+        float scaledY = deltaY * m_MouseSensitivity + m_MouseSensitivityRemainderY;
+
+        deltaX = (Sint32)scaledX;
+        deltaY = (Sint32)scaledY;
+
+        // Truncation toward zero keeps the remainder's sign in sync with the
+        // direction of movement, so it accumulates correctly either way.
+        m_MouseSensitivityRemainderX = scaledX - deltaX;
+        m_MouseSensitivityRemainderY = scaledY - deltaY;
+    }
+
+    // LiSendMouseMoveEvent() takes shorts, so split up any movement larger than
+    // that (which is possible at high sensitivity multipliers) rather than
+    // clipping it, which would make fast mouse movements feel inconsistent.
+    do {
+        short chunkX = (short)qBound(-32768, deltaX, 32767);
+        short chunkY = (short)qBound(-32768, deltaY, 32767);
+
+        LiSendMouseMoveEvent(chunkX, chunkY);
+
+        deltaX -= chunkX;
+        deltaY -= chunkY;
+    } while (deltaX != 0 || deltaY != 0);
+}
+
 void SdlInputHandler::handleMouseMotionEvent(SDL_MouseMotionEvent* event)
 {
     if (!isCaptureActive()) {
@@ -174,7 +207,7 @@ void SdlInputHandler::handleMouseMotionEvent(SDL_MouseMotionEvent* event)
         m_MouseWasInVideoRegion = mouseInVideoRegion;
     }
     else {
-        LiSendMouseMoveEvent(xrel, yrel);
+        sendMouseMoveEvent(xrel, yrel);
     }
 }
 

@@ -168,6 +168,9 @@ private:
         KeyComboTogglePointerRegionLock,
         KeyComboQuitAndExit,
         KeyComboToggleKeyboardGrab,
+        KeyComboIncreaseMouseSensitivity,
+        KeyComboDecreaseMouseSensitivity,
+        KeyComboToggleMouseSensitivity,
         KeyComboMax
     };
 
@@ -187,6 +190,17 @@ private:
     void handleRelativeFingerEvent(SDL_TouchFingerEvent* event);
 
     void performSpecialKeyCombo(KeyCombo combo);
+
+    // Applies the user's mouse sensitivity multiplier to a relative mouse motion
+    // event and sends it to the host, preserving fractional movement between
+    // events so that slow movements are not lost.
+    void sendMouseMoveEvent(Sint32 deltaX, Sint32 deltaY);
+
+    // Changes the mouse sensitivity while streaming and shows the new value.
+    // stepDirection is +1 to increase the sensitivity and -1 to decrease it.
+    void adjustMouseSensitivity(int stepDirection);
+
+    void showMouseSensitivityOverlay();
 
     static
     Uint32 longPressTimerCallback(Uint32 interval, void* param);
@@ -242,6 +256,13 @@ private:
     bool m_AbsoluteMouseMode;
     bool m_AbsoluteTouchMode;
     bool m_DisabledTouchFeedback;
+
+    // Mouse sensitivity multiplier (1.0 == send deltas unmodified)
+    float m_MouseSensitivity;
+    // Fractional parts of the last scaled movement that have not been sent yet
+    float m_MouseSensitivityRemainderX;
+    float m_MouseSensitivityRemainderY;
+    SDL_TimerID m_MouseSensitivityOverlayTimer;
 
     SDL_TouchFingerEvent m_TouchDownEvent[MAX_FINGERS];
     SDL_TimerID m_LeftButtonReleaseTimer;

@@ -14,6 +14,24 @@ public:
     Q_INVOKABLE static int
     getDefaultBitrate(int width, int height, int fps, bool yuv444);
 
+    // Mouse sensitivity is expressed as a percentage multiplier applied to the
+    // relative mouse motion that we send to the host (100 = no change).
+    Q_INVOKABLE static int getDefaultMouseSensitivity();
+    Q_INVOKABLE static int getMinMouseSensitivity();
+    Q_INVOKABLE static int getMaxMouseSensitivity();
+
+    // Clamps a sensitivity value into the supported range.
+    static int
+    clampMouseSensitivity(int sensitivity);
+
+    // Steps a sensitivity value to the next detent used by the sensitivity
+    // hotkeys. Both directions walk the same list of detents, so increasing and
+    // decreasing always produce the same values and always land on whole
+    // numbers. Returns the value unchanged if it is already at the end of the
+    // range.
+    static int
+    stepMouseSensitivity(int sensitivity, int stepDirection);
+
     Q_INVOKABLE void save();
 
     void reload();
@@ -133,6 +151,8 @@ public:
     Q_PROPERTY(bool quitAppAfter MEMBER quitAppAfter NOTIFY quitAppAfterChanged)
     Q_PROPERTY(bool absoluteMouseMode MEMBER absoluteMouseMode NOTIFY absoluteMouseModeChanged)
     Q_PROPERTY(bool absoluteTouchMode MEMBER absoluteTouchMode NOTIFY absoluteTouchModeChanged)
+    Q_PROPERTY(int mouseSensitivity MEMBER mouseSensitivity NOTIFY mouseSensitivityChanged)
+    Q_PROPERTY(bool mouseSensitivityEnabled MEMBER mouseSensitivityEnabled NOTIFY mouseSensitivityEnabledChanged)
     Q_PROPERTY(bool framePacing MEMBER framePacing NOTIFY framePacingChanged)
     Q_PROPERTY(bool connectionWarnings MEMBER connectionWarnings NOTIFY connectionWarningsChanged)
     Q_PROPERTY(bool configurationWarnings MEMBER configurationWarnings NOTIFY configurationWarningsChanged)
@@ -175,6 +195,8 @@ public:
     bool quitAppAfter;
     bool absoluteMouseMode;
     bool absoluteTouchMode;
+    int mouseSensitivity;
+    bool mouseSensitivityEnabled;
     bool framePacing;
     bool connectionWarnings;
     bool configurationWarnings;
@@ -215,6 +237,8 @@ signals:
     void quitAppAfterChanged();
     void absoluteMouseModeChanged();
     void absoluteTouchModeChanged();
+    void mouseSensitivityChanged();
+    void mouseSensitivityEnabledChanged();
     void audioConfigChanged();
     void videoCodecConfigChanged();
     void enableHdrChanged();

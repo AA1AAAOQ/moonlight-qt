@@ -356,6 +356,8 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
     parser.addToggleOption("quit-after", "quit app after session");
     parser.addToggleOption("absolute-mouse", "remote desktop optimized mouse control");
     parser.addToggleOption("mouse-buttons-swap", "left and right mouse buttons swap");
+    parser.addValueOption("mouse-sensitivity", "mouse sensitivity percentage (100 = default)");
+    parser.addToggleOption("mouse-sensitivity-enabled", "mouse sensitivity adjustment");
     parser.addToggleOption("touchscreen-trackpad", "touchscreen in trackpad mode");
     parser.addToggleOption("game-optimization", "game optimizations");
     parser.addToggleOption("audio-on-host", "audio on host PC");
@@ -454,6 +456,16 @@ void StreamCommandLineParser::parse(const QStringList &args, StreamingPreference
 
     // Resolve --mouse-buttons-swap and --no-mouse-buttons-swap options
     preferences->swapMouseButtons = parser.getToggleOptionValue("mouse-buttons-swap", preferences->swapMouseButtons);
+
+    // Resolve --mouse-sensitivity option
+    if (parser.isSet("mouse-sensitivity")) {
+        preferences->mouseSensitivity = StreamingPreferences::clampMouseSensitivity(
+                    parser.getIntOption("mouse-sensitivity"));
+    }
+
+    // Resolve --mouse-sensitivity-enabled and --no-mouse-sensitivity-enabled options
+    preferences->mouseSensitivityEnabled = parser.getToggleOptionValue("mouse-sensitivity-enabled",
+                                                                      preferences->mouseSensitivityEnabled);
 
     // Resolve --touchscreen-trackpad and --no-touchscreen-trackpad options
     preferences->absoluteTouchMode = !parser.getToggleOptionValue("touchscreen-trackpad", !preferences->absoluteTouchMode);
