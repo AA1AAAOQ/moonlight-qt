@@ -1,0 +1,142 @@
+---
+name: Build Windows Installer
+
+# Builds the WiX MSI + Burn bundle (MoonlightSetup.exe) from source on Windows.
+# This is the Windows half of ".github/workflows/build-win-mac.yml" plus the
+# upload of the installer that the upstream workflow builds but never uploads,
+# so every run of this workflow publishes a setup.exe artifact.
+#
+# Toolchain comes from scripts/build-arch.bat (x64 + arm64 binaries and MSIs)
+# and scripts/generate-bundle.bat (Burn bundle), unchanged.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      ci_version:
+        description: Version marker used in output file names (defaults to the first 6 characters of the commit SHA)
+        required: false
+        type: string
+  push:
+    branches:
+      - ci/installer
+    paths:
+      - '.github/workflows/build-installer.yml'
+
+concurrency:
+  group: build-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  QT_VERSION: 6.12.0
+
+jobs:
+  installer:
+    name: Build MoonlightSetup.exe
+    runs-on: windows-2025
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: 'recursive'
+          fetch-depth: 1
+
+      - name: Set CI version
+        shell: pwsh
+        run: |
+          $version = '${{ inputs.ci_version }}'
+          if (-not $version) {
+            $version = $env:GITHUB_SHA.Substring(0, 6)
+          }
+          "CI_VERSION=$version" | Add-Content -Path $env:GITHUB_ENV
+          "version marker: $version"
+
+      - name: Ensure 7-Zip is on PATH
+        shell: pwsh
+        run: |
+          $sevenZip = Get-Command 7z -ErrorAction SilentlyContinue
+          if ($sevenZip) {
+            "7z already available: $($sevenZip.Source)"
+          } else {
+            'C:\Program Files\7-Zip' | Add-Content -Path $env:GITHUB_PATH
+            '7z was not on PATH; appended C:\Program Files\7-Zip'
+          }
+
+      - name: Download dependencies
+        run: powershell ./setup-deps.ps1
+
+      - name: Install Qt (x64)
+        uses: jurplel/install-qt-action@v4
+        with:
+          cache: true
+          set-env: false
+          add-tools-to-path: false
+          tools: 'tools_qtcreator_gui'
+          version: ${{ env.QT_VERSION }}
+          aqtsource: 'git+https://github.com/miurahr/aqtinstall.git@073e34d7c2ab4ae6961ed7cca690b3abd5ba5a7e'
+
+      - name: Install Qt (arm64, cross-compiled)
+        uses: jurplel/install-qt-action@v4
+        with:
+          cache: true
+          set-env: false
+          add-tools-to-path: false
+          arch: win64_msvc2022_arm64_cross_compiled
+          version: ${{ env.QT_VERSION }}
+          aqtsource: 'git+https://github.com/miurahr/aqtinstall.git@073e34d7c2ab4ae6961ed7cca690b3abd5ba5a7e'
+
+      - name: Build x64 binaries and MSI
+        shell: cmd
+        run: |
+          set "PATH=%QT_PATH%;%PATH%"
+          scripts\build-arch.bat Release x64
+        env:
+          QT_PATH: ${{ runner.workspace }}\Qt\${{ env.QT_VERSION }}\msvc2022_64\bin
+
+      - name: Build ARM64 binaries and MSI
+        shell: cmd
+        run: |
+          set "PATH=%QT_PATH%;%PATH%"
+          scripts\build-arch.bat Release arm64
+        env:
+          QT_PATH: ${{ runner.workspace }}\Qt\${{ env.QT_VERSION }}\msvc2022_arm64\bin
+
+      - name: Build installer bundle
+        shell: pwsh
+        run: cmd /c scripts\generate-bundle.bat Release
+
+      - name: Verify and summarize installer
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem build\installer-release\*.exe | Select-Object -First 1
+          if (-not $installer) { throw 'generate-bundle.bat produced no installer' }
+
+          # generate-bundle.bat names the bundle MoonlightSetup-<CI_VERSION>.exe;
+          # also publish it under the release version for clarity.
+          $version = (Get-Content app\version.txt -Raw).Trim()
+          $named = Join-Path $installer.Directory "MoonlightSetup-$version-$env:CI_VERSION.exe"
+          Copy-Item -LiteralPath $installer.FullName -Destination $named -Force
+
+          $hash = (Get-FileHash -LiteralPath $named -Algorithm SHA256).Hash.ToLower()
+          Get-ChildItem $installer.Directory -Filter *.exe |
+            ForEach-Object { "$($_.Name) : $($_.Length) bytes" }
+          "sha256($($named | Split-Path -Leaf)) : $hash"
+
+          @(
+            '### MoonlightSetup.exe',
+            '',
+            '| file | size (bytes) | sha256 |',
+            '| --- | --- | --- |',
+            "| $(Split-Path -Leaf $named) | $((Get-Item -LiteralPath $named).Length) | $hash |"
+          ) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: MoonlightSetup-${{ env.CI_VERSION }}
+          path: build/installer-release/*.exe
+          if-no-files-found: error
+          compression-level: 0
