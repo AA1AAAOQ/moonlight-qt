@@ -6,6 +6,12 @@
     <DefineConstants>Debug</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
+    <!-- Architecture of the bundle being built; Bundle.wxs uses $(var.ARCH) to
+         emit only that architecture's payloads. Pass /p:ARCH=x64|arm64. -->
+    <ARCH Condition=" '$(ARCH)' == '' ">x64</ARCH>
+    <DefineConstants>$(DefineConstants);ARCH=$(ARCH)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
     <OutputPath>$(INSTALLER_FOLDER)\</OutputPath>
     <IntermediateOutputPath>$(BUILD_FOLDER)\</IntermediateOutputPath>
   </PropertyGroup>

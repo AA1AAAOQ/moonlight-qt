@@ -107,6 +107,24 @@ jobs:
           path: build/deploy-arm64-release/*
           if-no-files-found: error
 
+      - name: Upload Installer (Windows x64)
+        uses: actions/upload-artifact@v6
+        if: runner.os == 'Windows'
+        with:
+          name: MoonlightSetup-x64-${{ env.CI_VERSION }}
+          path: build/installer-release/*-x64-*.exe
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload Installer (Windows arm64)
+        uses: actions/upload-artifact@v6
+        if: runner.os == 'Windows'
+        with:
+          name: MoonlightSetup-arm64-${{ env.CI_VERSION }}
+          path: build/installer-release/*-arm64-*.exe
+          if-no-files-found: error
+          compression-level: 0
+
       - name: Upload Binaries (macOS)
         uses: actions/upload-artifact@v6
         if: runner.os == 'macOS'

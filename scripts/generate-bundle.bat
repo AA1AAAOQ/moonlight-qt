@@ -39,7 +39,6 @@ if /I "%BUILD_CONFIG%"=="debug" (
 
 set BUILD_ROOT=%cd%\build
 set SOURCE_ROOT=%cd%
-set BUILD_FOLDER=%BUILD_ROOT%\build-%BUILD_CONFIG%
 set INSTALLER_FOLDER=%BUILD_ROOT%\installer-%BUILD_CONFIG%
 
 rem Allow CI to override the version.txt with an environment variable
@@ -62,9 +61,9 @@ if not exist "%BUILD_ROOT%\build-arm64-%BUILD_CONFIG%\Moonlight.msi" (
 )
 
 echo Cleaning output directories
-rmdir /s /q %BUILD_FOLDER%
+rmdir /s /q %BUILD_ROOT%\build-bundle-x64-%BUILD_CONFIG%
+rmdir /s /q %BUILD_ROOT%\build-bundle-arm64-%BUILD_CONFIG%
 rmdir /s /q %INSTALLER_FOLDER%
-mkdir %BUILD_FOLDER%
 mkdir %INSTALLER_FOLDER%
 
 rem Find Visual Studio and run vcvarsall.bat
@@ -75,15 +74,31 @@ for /f "usebackq delims=" %%i in (`%VSWHERE% -latest -property installationPath`
 )
 if !ERRORLEVEL! NEQ 0 goto Error
 
-echo Building bundle
-rem Bundles are always x86 binaries
-cmd /c "set VERSION= && msbuild -Restore %SOURCE_ROOT%\wix\MoonlightSetup\MoonlightSetup.wixproj /p:Configuration=%BUILD_CONFIG% /p:Platform=x86 /p:MSBuildProjectExtensionsPath=%BUILD_FOLDER%\"
+rem One installer per architecture (see wix\MoonlightSetup\Bundle.wxs). Bundles
+rem are always x86 binaries, so Platform stays x86 and ARCH picks the payloads.
+rem Each architecture needs its own intermediate directory, otherwise the second
+rem build counts as up to date and produces no installer.
+echo Building x64 bundle
+set BUILD_FOLDER=%BUILD_ROOT%\build-bundle-x64-%BUILD_CONFIG%
+mkdir !BUILD_FOLDER!
+cmd /c "set VERSION= && msbuild -Restore %SOURCE_ROOT%\wix\MoonlightSetup\MoonlightSetup.wixproj /p:Configuration=%BUILD_CONFIG% /p:Platform=x86 /p:ARCH=x64 /p:MSBuildProjectExtensionsPath=!BUILD_FOLDER!\"
 if !ERRORLEVEL! NEQ 0 goto Error
 
 rem Rename the installer to match the publishing convention
-ren %INSTALLER_FOLDER%\MoonlightSetup.exe MoonlightSetup-%VERSION%.exe
+ren %INSTALLER_FOLDER%\MoonlightSetup.exe MoonlightSetup-x64-%VERSION%.exe
+if !ERRORLEVEL! NEQ 0 goto Error
 
-echo Build successful for Moonlight v%VERSION% installer!
+echo Building arm64 bundle
+set BUILD_FOLDER=%BUILD_ROOT%\build-bundle-arm64-%BUILD_CONFIG%
+mkdir !BUILD_FOLDER!
+cmd /c "set VERSION= && msbuild -Restore %SOURCE_ROOT%\wix\MoonlightSetup\MoonlightSetup.wixproj /p:Configuration=%BUILD_CONFIG% /p:Platform=x86 /p:ARCH=arm64 /p:MSBuildProjectExtensionsPath=!BUILD_FOLDER!\"
+if !ERRORLEVEL! NEQ 0 goto Error
+
+rem Rename the installer to match the publishing convention
+ren %INSTALLER_FOLDER%\MoonlightSetup.exe MoonlightSetup-arm64-%VERSION%.exe
+if !ERRORLEVEL! NEQ 0 goto Error
+
+echo Build successful for Moonlight v%VERSION% installers!
 exit /b 0
 
 :Error
