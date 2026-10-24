@@ -967,6 +967,51 @@
         <translation>注意：由于 GeForce Experience 的 Bug，如果你的目标计算机有多个显示器，则此选项可能无法正常工作。</translation>
     </message>
     <message>
+        <location filename="../gui/SettingsView.qml" line="1354"/>
+        <source>Adjust mouse sensitivity for games</source>
+        <translation>调整游戏鼠标灵敏度</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1366"/>
+        <source>When unchecked, mouse motion is sent to the host exactly as it is captured, without any sensitivity adjustment.</source>
+        <translation>取消选中时，鼠标移动会按捕获到的原样发送到目标计算机，不进行任何灵敏度调整。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1367"/>
+        <source>You can toggle this while streaming using Ctrl+Alt+Shift+A.</source>
+        <translation>你可以在串流期间使用 Ctrl+Alt+Shift+A 切换此选项。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1374"/>
+        <source>Mouse sensitivity: %1%</source>
+        <translation>鼠标灵敏度：%1%</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1375"/>
+        <source>Mouse sensitivity: off</source>
+        <translation>鼠标灵敏度：关闭</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1384"/>
+        <source>Raise this if mouse movement feels too slow in a game, even after increasing the sensitivity in the game&apos;s own settings. 100% sends mouse motion to the host unchanged.</source>
+        <translation>如果即使在游戏自身的设置中提高灵敏度后，游戏里的鼠标移动仍然感觉太慢，请调高此值。100% 会将鼠标移动原样发送到目标计算机。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1385"/>
+        <source>This only applies to games that use the captured mouse (not remote desktop mouse mode).</source>
+        <translation>此设置仅适用于使用鼠标捕获的游戏，不适用于远程桌面鼠标模式。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1386"/>
+        <source>You can also adjust it while streaming using Ctrl+Alt+Shift+Up and Ctrl+Alt+Shift+Down, or turn the adjustment off with Ctrl+Alt+Shift+A.</source>
+        <translation>你也可以在串流期间使用 Ctrl+Alt+Shift+Up 和 Ctrl+Alt+Shift+Down 调整此值，或使用 Ctrl+Alt+Shift+A 关闭灵敏度调整。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1426"/>
+        <source>Use Default (%1%)</source>
+        <translation>使用默认 (%1%)</translation>
+    </message>
+    <message>
         <location filename="../gui/SettingsView.qml" line="1331"/>
         <source>Capture system keyboard shortcuts</source>
         <translation>捕获系统快捷键</translation>

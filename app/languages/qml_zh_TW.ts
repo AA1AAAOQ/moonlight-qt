@@ -899,6 +899,51 @@
         <translation>提醒：由於 GeForce Experience 的錯誤，如果您的主機電腦有多部顯示器，此選項可能無法正常運作。</translation>
     </message>
     <message>
+        <location filename="../gui/SettingsView.qml" line="1354"/>
+        <source>Adjust mouse sensitivity for games</source>
+        <translation>調整遊戲滑鼠靈敏度</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1366"/>
+        <source>When unchecked, mouse motion is sent to the host exactly as it is captured, without any sensitivity adjustment.</source>
+        <translation>取消選中時，滑鼠移動會按擷取到的原樣傳送到主機，不進行任何靈敏度調整。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1367"/>
+        <source>You can toggle this while streaming using Ctrl+Alt+Shift+A.</source>
+        <translation>您可以在串流時按下 Ctrl+Alt+Shift+A 來切換此選項。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1374"/>
+        <source>Mouse sensitivity: %1%</source>
+        <translation>滑鼠靈敏度：%1%</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1375"/>
+        <source>Mouse sensitivity: off</source>
+        <translation>滑鼠靈敏度：關閉</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1384"/>
+        <source>Raise this if mouse movement feels too slow in a game, even after increasing the sensitivity in the game&apos;s own settings. 100% sends mouse motion to the host unchanged.</source>
+        <translation>如果在遊戲本身的設定中提高靈敏度後，遊戲中的滑鼠移動仍然感覺太慢，請調高此值。100% 會將滑鼠移動原樣傳送到主機。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1385"/>
+        <source>This only applies to games that use the captured mouse (not remote desktop mouse mode).</source>
+        <translation>此設定僅適用於使用滑鼠擷取的遊戲，不適用於遠端桌面滑鼠模式。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1386"/>
+        <source>You can also adjust it while streaming using Ctrl+Alt+Shift+Up and Ctrl+Alt+Shift+Down, or turn the adjustment off with Ctrl+Alt+Shift+A.</source>
+        <translation>您也可以在串流時使用 Ctrl+Alt+Shift+Up 和 Ctrl+Alt+Shift+Down 調整此值，或使用 Ctrl+Alt+Shift+A 關閉靈敏度調整。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1426"/>
+        <source>Use Default (%1%)</source>
+        <translation>使用預設值 (%1%)</translation>
+    </message>
+    <message>
         <location filename="../gui/SettingsView.qml" line="1621"/>
         <source>AV1</source>
         <translation>AV1</translation>
