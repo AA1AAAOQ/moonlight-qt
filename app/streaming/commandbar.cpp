@@ -1,6 +1,5 @@
 #include "commandbar.h"
 
-#include <QApplication>
 #include <QFont>
 #include <QFontMetricsF>
 #include <QGuiApplication>
