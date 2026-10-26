@@ -994,17 +994,17 @@
     <message>
         <location filename="../gui/SettingsView.qml" line="1384"/>
         <source>Raise this if mouse movement feels too slow in a game, even after increasing the sensitivity in the game&apos;s own settings. 100% sends mouse motion to the host unchanged.</source>
-        <translation>如果即使在游戏自身的设置中提高灵敏度后，游戏里的鼠标移动仍然感觉太慢，请调高此值。100% 会将鼠标移动原样发送到目标计算机。</translation>
+        <translation>部分游戏的灵敏度在串流时不正确，遇到该问题时，请调高此值。100% 表示无变化。</translation>
     </message>
     <message>
         <location filename="../gui/SettingsView.qml" line="1385"/>
         <source>This only applies to games that use the captured mouse (not remote desktop mouse mode).</source>
-        <translation>此设置仅适用于使用鼠标捕获的游戏，不适用于远程桌面鼠标模式。</translation>
+        <translation>此设置不适用于远程桌面鼠标模式（为远程桌面而不是游戏优化鼠标）。</translation>
     </message>
     <message>
         <location filename="../gui/SettingsView.qml" line="1386"/>
         <source>You can also adjust it while streaming using Ctrl+Alt+Shift+Up and Ctrl+Alt+Shift+Down, or turn the adjustment off with Ctrl+Alt+Shift+A.</source>
-        <translation>你也可以在串流期间使用 Ctrl+Alt+Shift+Up 和 Ctrl+Alt+Shift+Down 调整此值，或使用 Ctrl+Alt+Shift+A 关闭灵敏度调整。</translation>
+        <translation>你可以在串流期间使用 Ctrl+Alt+Shift+Up 和 Ctrl+Alt+Shift+Down 调整此值，使用 Ctrl+Alt+Shift+A 关闭该功能。</translation>
     </message>
     <message>
         <location filename="../gui/SettingsView.qml" line="1426"/>
