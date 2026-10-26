@@ -4,6 +4,7 @@ import QtQuick.Window 2.2
 
 import SdlGamepadKeyNavigation 1.0
 import Session 1.0
+import StreamingPreferences 1.0
 import SystemProperties 1.0
 
 Item {
@@ -13,6 +14,10 @@ Item {
                                            qsTr("Starting %1...").arg(appName)
     property bool isResume : false
     property bool quitAfter : false
+
+    // Set once the session has been kicked off, so the control hint dialog
+    // can't start it twice
+    property bool streamStarted : false
 
     function stageStarting(stage)
     {
@@ -125,7 +130,27 @@ Item {
         // since it may currently be using the SDL video subsystem
         SystemProperties.waitForAsyncLoad()
 
+        // Show the control hints before the stream starts, so the user gets a
+        // chance to read them while Moonlight's window is still visible. The
+        // hints are skipped for CLI launches, which have no user to dismiss
+        // them, and when they have been turned off in the preferences.
+        if (!streamStarted && !quitAfter && StreamingPreferences.showStreamHintsOnStreamStart) {
+            streamHintsDialog.resetState()
+            streamHintsDialog.open()
+            return
+        }
+
         // Kick off the stream
+        startStream()
+    }
+
+    function startStream()
+    {
+        if (streamStarted) {
+            return
+        }
+
+        streamStarted = true
         streamLoader.active = true
     }
 
@@ -230,5 +255,25 @@ Item {
         verticalAlignment: Text.AlignVCenter
 
         wrapMode: Text.Wrap
+    }
+
+    StreamHintsDialog {
+        id: streamHintsDialog
+
+        onAccepted: {
+            // Remember the choice, so the hints don't show up again. The
+            // preference is written right away because this view may never be
+            // left through the settings page during the session.
+            if (dontShowAgain) {
+                StreamingPreferences.showStreamHintsOnStreamStart = false
+                StreamingPreferences.save()
+            }
+
+            startStream()
+        }
+
+        // Dismissing the dialog without acknowledging it still starts the
+        // stream, so the user can never get stuck on the hints.
+        onRejected: startStream()
     }
 }

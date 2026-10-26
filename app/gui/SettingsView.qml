@@ -1305,6 +1305,23 @@ Flickable {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Prevents the screensaver from starting or the display from going to sleep while streaming.")
                 }
+
+                CheckBox {
+                    id: streamHintsCheck
+                    hoverEnabled: true
+                    width: parent.width
+                    text: qsTr("Show the control hints when a stream starts")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.showStreamHintsOnStreamStart
+                    onCheckedChanged: {
+                        StreamingPreferences.showStreamHintsOnStreamStart = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Displays the list of keyboard shortcuts before every stream begins. You can also turn it off with the \"Do not show this again\" checkbox in the list itself.")
+                }
             }
         }
     }

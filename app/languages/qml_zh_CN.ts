@@ -1237,6 +1237,16 @@
         <source>Automatically detect blocked connections (Recommended)</source>
         <translation>自动检测被阻止的连接 (推荐)</translation>
     </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1313"/>
+        <source>Show the control hints when a stream starts</source>
+        <translation>串流开始时显示操作提示</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml" line="1323"/>
+        <source>Displays the list of keyboard shortcuts before every stream begins. You can also turn it off with the &quot;Do not show this again&quot; checkbox in the list itself.</source>
+        <translation>在每次串流开始前显示键盘快捷键列表。你也可以在列表本身中勾选“不再显示”来关闭此功能。</translation>
+    </message>
 </context>
 <context>
     <name>StreamSegue</name>
@@ -1285,6 +1295,89 @@
         <location filename="../gui/StreamSegue.qml" line="169"/>
         <source>Ctrl+Alt+Shift+Q</source>
         <translation>Ctrl+Alt+Shift+Q</translation>
+    </message>
+</context>
+<context>
+    <name>StreamHintsDialog</name>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="21"/>
+        <source>Quit the stream</source>
+        <translation>退出串流</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="22"/>
+        <source>Quit the stream and close Moonlight</source>
+        <translation>退出串流并关闭 Moonlight</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="23"/>
+        <source>Release the captured mouse and keyboard</source>
+        <translation>释放被捕获的鼠标和键盘</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="24"/>
+        <source>Toggle full-screen and windowed mode</source>
+        <translation>切换全屏和窗口模式</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="25"/>
+        <source>Minimize the stream window</source>
+        <translation>最小化串流窗口</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="26"/>
+        <source>Capture or release the system keys</source>
+        <translation>捕获或释放系统按键</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="27"/>
+        <source>Toggle remote desktop mouse mode</source>
+        <translation>切换远程桌面鼠标模式</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="28"/>
+        <source>Show or hide the mouse cursor</source>
+        <translation>显示或隐藏鼠标光标</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="29"/>
+        <source>Lock the pointer inside the video region</source>
+        <translation>将指针锁定在视频区域内</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="30"/>
+        <source>Show or hide performance statistics</source>
+        <translation>显示或隐藏性能统计</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="31"/>
+        <source>Type the clipboard text on the host</source>
+        <translation>在目标计算机上输入剪贴板文本</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="32"/>
+        <source>Turn mouse sensitivity adjustment on or off</source>
+        <translation>开启或关闭鼠标灵敏度调整</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="33"/>
+        <source>Change the mouse sensitivity</source>
+        <translation>调整鼠标灵敏度</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="52"/>
+        <source>You can use these keyboard shortcuts while streaming:</source>
+        <translation>串流期间可以使用以下快捷键：</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="86"/>
+        <source>Do not show this again</source>
+        <translation>不再显示</translation>
+    </message>
+    <message>
+        <location filename="../gui/StreamHintsDialog.qml" line="103"/>
+        <source>Got it</source>
+        <translation>知道了</translation>
     </message>
 </context>
 <context>
