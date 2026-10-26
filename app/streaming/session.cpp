@@ -584,7 +584,8 @@ Session::Session(NvComputer* computer, NvApp& app, StreamingPreferences *prefere
       m_OpusDecoder(nullptr),
       m_AudioRenderer(nullptr),
       m_AudioSampleCount(0),
-      m_DropAudioEndTime(0)
+      m_DropAudioEndTime(0),
+      m_CommandBar(nullptr)
 {
 }
 
@@ -1524,6 +1525,13 @@ void Session::toggleFullscreen()
     // Actually enter/leave fullscreen
     SDL_SetWindowFullscreen(m_Window, fullScreen ? m_FullScreenFlag : 0);
 
+    // The command bar is only shown in full-screen mode, so it needs to react
+    // to the transition. This also happens via SDL_WINDOWEVENT, but doing it
+    // here keeps the bar from lingering for a frame.
+    if (m_CommandBar != nullptr) {
+        m_CommandBar->notifyWindowChanged();
+    }
+
 #ifdef Q_OS_DARWIN
     // SDL on macOS has a bug that causes the window size to be reset to crazy
     // large dimensions when exiting out of true fullscreen mode. We can work
@@ -1957,6 +1965,10 @@ void Session::exec()
     // Toggle the stats overlay if requested by the user
     m_OverlayManager.setOverlayState(Overlay::OverlayDebug, m_Preferences->showPerformanceOverlay);
 
+    // Create the command bar now that the window exists
+    m_CommandBar = CommandBar::create(m_QtWindow);
+    m_CommandBar->notifyStreamStarting();
+
     // Switch to async logging mode when we enter the SDL loop
     StreamUtils::enterAsyncLoggingMode();
 
@@ -1976,6 +1988,12 @@ void Session::exec()
         // and other problems.
         if (!SDL_WaitEventTimeout(&event, 1000)) {
             presence.runCallbacks();
+
+            if (m_CommandBar != nullptr) {
+                // Drive the command bar's fade animation and auto-hide timers
+                m_CommandBar->update();
+            }
+
             continue;
         }
 #else
@@ -1992,6 +2010,12 @@ void Session::exec()
             SDL_Delay(10);
 #endif
             presence.runCallbacks();
+
+            if (m_CommandBar != nullptr) {
+                // Drive the command bar's fade animation and auto-hide timers
+                m_CommandBar->update();
+            }
+
             continue;
         }
 #endif
@@ -2058,6 +2082,18 @@ void Session::exec()
                 break;
             case SDL_WINDOWEVENT_LEAVE:
                 m_InputHandler->notifyMouseLeave();
+                break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_MAXIMIZED:
+            case SDL_WINDOWEVENT_RESTORED:
+            case SDL_WINDOWEVENT_MINIMIZED:
+            case SDL_WINDOWEVENT_ENTER:
+            case SDL_WINDOWEVENT_SHOWN:
+            case SDL_WINDOWEVENT_HIDDEN:
+                if (m_CommandBar != nullptr) {
+                    m_CommandBar->notifyWindowChanged();
+                }
                 break;
             }
 
@@ -2248,17 +2284,37 @@ void Session::exec()
         case SDL_KEYUP:
         case SDL_KEYDOWN:
             presence.runCallbacks();
+
+            // The command bar consumes the keys that drive its own UI, so it
+            // gets the first look at them
+            if (m_CommandBar != nullptr) {
+                m_CommandBar->handleKeyEvent(&event.key);
+            }
+
             m_InputHandler->handleKeyEvent(&event.key);
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             presence.runCallbacks();
+
+            if (m_CommandBar != nullptr) {
+                m_CommandBar->handleMouseButtonEvent(&event.button);
+            }
+
             m_InputHandler->handleMouseButtonEvent(&event.button);
             break;
         case SDL_MOUSEMOTION:
+            if (m_CommandBar != nullptr) {
+                m_CommandBar->handleMouseMotionEvent(&event.motion);
+            }
+
             m_InputHandler->handleMouseMotionEvent(&event.motion);
             break;
         case SDL_MOUSEWHEEL:
+            if (m_CommandBar != nullptr) {
+                m_CommandBar->handleMouseWheelEvent(&event.wheel);
+            }
+
             m_InputHandler->handleMouseWheelEvent(&event.wheel);
             break;
         case SDL_CONTROLLERAXISMOTION:
@@ -2328,6 +2384,11 @@ DispatchDeferredCleanup:
     // interfere with SDLGamepadKeyNavigation.
     delete m_InputHandler;
     m_InputHandler = nullptr;
+
+    // Destroy the command bar before the decoder, since it hands surfaces to
+    // the overlay manager and must not outlive the renderer that draws them.
+    delete m_CommandBar;
+    m_CommandBar = nullptr;
 
     // Destroy the decoder, since this must be done on the main thread
     // NB: This must happen before LiStopConnection() for pull-based

@@ -884,6 +884,46 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Show the keyboard shortcuts when a stream starts</source>
+        <translation>串流開始時顯示快速鍵提示</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Displays a list of the keyboard shortcuts at the start of every stream. You can also turn it off from the list itself.</source>
+        <translation>在每次串流開始時顯示快速鍵清單。你也可以在清單本身中將其關閉。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Show the command bar while streaming</source>
+        <translation>串流期間顯示命令列</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>The command bar is a small toolbar at the top of the screen that provides window controls, mouse sensitivity and other actions while streaming.</source>
+        <translation>命令列是畫面頂端的小工具列，在串流期間提供視窗控制、滑鼠靈敏度等操作。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>It is shown in full-screen mode and hidden automatically in windowed mode.</source>
+        <translation>它只在全螢幕模式下顯示，在視窗化模式下自動隱藏。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Move the pointer to the top edge of the screen to reveal it, or use Ctrl+Alt+Shift+B while the mouse is captured.</source>
+        <translation>將指標移到畫面上緣即可呼出，或在滑鼠被擷取時使用 Ctrl+Alt+Shift+B。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Keep the command bar on screen</source>
+        <translation>讓命令列保持顯示</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Pins the command bar so it stays visible instead of hiding when the pointer moves away. You can also pin and unpin it while streaming.</source>
+        <translation>釘選命令列，使其在指標移開後仍然顯示，而不是自動隱藏。你也可以在串流期間釘選或取消釘選。</translation>
+    </message>
+    <message>
         <location filename="../gui/SettingsView.qml" line="1298"/>
         <source>Input Settings</source>
         <translation>輸入設定</translation>

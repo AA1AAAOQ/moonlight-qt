@@ -234,21 +234,13 @@ void SdlRenderer::renderOverlay(Overlay::OverlayType type)
                 SDL_DestroyTexture(m_OverlayTextures[type]);
             }
 
-            if (type == Overlay::OverlayStatusUpdate) {
-                // Bottom Left
-                SDL_Rect viewportRect;
-                SDL_RenderGetViewport(m_Renderer, &viewportRect);
-                m_OverlayRects[type].x = 0;
-                m_OverlayRects[type].y = viewportRect.h - newSurface->h;
-            }
-            else if (type == Overlay::OverlayDebug) {
-                // Top left
-                m_OverlayRects[type].x = 0;
-                m_OverlayRects[type].y = 0;
-            }
+            // The SDL renderer uses the top-left corner as its origin, which is
+            // the same convention the overlay regions use.
+            SDL_Rect viewportRect;
+            SDL_RenderGetViewport(m_Renderer, &viewportRect);
 
-            m_OverlayRects[type].w = newSurface->w;
-            m_OverlayRects[type].h = newSurface->h;
+            m_OverlayRects[type] = Session::get()->getOverlayManager().getOverlayRegion(
+                        type, newSurface->w, newSurface->h, viewportRect.w, viewportRect.h);
 
             m_OverlayTextures[type] = SDL_CreateTextureFromSurface(m_Renderer, newSurface);
             SDL_FreeSurface(newSurface);

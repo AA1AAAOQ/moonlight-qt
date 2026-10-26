@@ -10,6 +10,7 @@
 #include "video/decoder.h"
 #include "audio/renderers/renderer.h"
 #include "video/overlaymanager.h"
+#include "commandbar.h"
 
 class SupportedVideoFormatList : public QList<int>
 {
@@ -96,6 +97,7 @@ class Session : public QObject
     friend class SdlInputHandler;
     friend class DeferredSessionCleanupTask;
     friend class AsyncConnectionStartThread;
+    friend class CommandBar;
 
 public:
     explicit Session(NvComputer* computer, NvApp& app, StreamingPreferences *preferences = nullptr);
@@ -120,6 +122,25 @@ public:
     {
         return m_OverlayManager;
     }
+
+    // The command bar shown on top of the stream, if one has been created
+    CommandBar* getCommandBar()
+    {
+        return m_CommandBar;
+    }
+
+    SDL_Window* getWindow() const
+    {
+        return m_Window;
+    }
+
+    SdlInputHandler* getInputHandler() const
+    {
+        return m_InputHandler;
+    }
+
+    // Toggles between full-screen and windowed mode (used by the command bar)
+    void toggleFullscreen();
 
     void flushWindowEvents();
 
@@ -164,8 +185,6 @@ private:
 
     void getWindowDimensions(int& x, int& y,
                              int& width, int& height);
-
-    void toggleFullscreen();
 
     void notifyMouseEmulationMode(bool enabled);
 
@@ -281,6 +300,8 @@ private:
     Uint32 m_DropAudioEndTime;
 
     Overlay::OverlayManager m_OverlayManager;
+
+    CommandBar* m_CommandBar;
 
     static CONNECTION_LISTENER_CALLBACKS k_ConnCallbacks;
     static Session* s_ActiveSession;

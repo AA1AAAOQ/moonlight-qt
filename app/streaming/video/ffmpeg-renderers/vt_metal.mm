@@ -527,20 +527,20 @@ public:
             SDL_AtomicUnlock(&m_OverlayLock);
 
             if (overlayTexture) {
-                SDL_FRect renderRect = {};
-                if (i == Overlay::OverlayStatusUpdate) {
-                    // Bottom Left
-                    renderRect.x = 0;
-                    renderRect.y = 0;
-                }
-                else if (i == Overlay::OverlayDebug) {
-                    // Top left
-                    renderRect.x = 0;
-                    renderRect.y = m_LastDrawableHeight - overlayTexture.height;
-                }
+                SDL_Rect overlayRegion = Session::get()->getOverlayManager().getOverlayRegion(
+                            (Overlay::OverlayType)i,
+                            (int)overlayTexture.width, (int)overlayTexture.height,
+                            (int)m_LastDrawableWidth, (int)m_LastDrawableHeight);
 
-                renderRect.w = overlayTexture.width;
-                renderRect.h = overlayTexture.height;
+                // The overlay regions use the top-left corner of the window as
+                // their origin, but the vertex coordinates below are expressed
+                // with Y growing upwards (like OpenGL), so the position has to
+                // be flipped vertically.
+                SDL_FRect renderRect = {};
+                renderRect.x = (float)overlayRegion.x;
+                renderRect.y = (float)(m_LastDrawableHeight - (overlayRegion.y + overlayRegion.h));
+                renderRect.w = (float)overlayRegion.w;
+                renderRect.h = (float)overlayRegion.h;
 
                 // Convert screen space to normalized device coordinates
                 StreamUtils::screenSpaceToNormalizedDeviceCoords(&renderRect, m_LastDrawableWidth, m_LastDrawableHeight);

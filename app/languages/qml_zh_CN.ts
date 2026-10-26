@@ -922,6 +922,46 @@
         <translation>显示配置警告</translation>
     </message>
     <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Show the keyboard shortcuts when a stream starts</source>
+        <translation>串流开始时显示快捷键提示</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Displays a list of the keyboard shortcuts at the start of every stream. You can also turn it off from the list itself.</source>
+        <translation>在每次串流开始时显示快捷键列表。你也可以在列表本身中将其关闭。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Show the command bar while streaming</source>
+        <translation>串流期间显示命令栏</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>The command bar is a small toolbar at the top of the screen that provides window controls, mouse sensitivity and other actions while streaming.</source>
+        <translation>命令栏是屏幕顶部的一个小工具栏，在串流期间提供窗口控制、鼠标灵敏度等操作。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>It is shown in full-screen mode and hidden automatically in windowed mode.</source>
+        <translation>它只在全屏模式下显示，在窗口化模式下自动隐藏。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Move the pointer to the top edge of the screen to reveal it, or use Ctrl+Alt+Shift+B while the mouse is captured.</source>
+        <translation>将指针移到屏幕上边缘即可呼出，或在鼠标被捕获时使用 Ctrl+Alt+Shift+B。</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Keep the command bar on screen</source>
+        <translation>让命令栏保持显示</translation>
+    </message>
+    <message>
+        <location filename="../gui/SettingsView.qml"/>
+        <source>Pins the command bar so it stays visible instead of hiding when the pointer moves away. You can also pin and unpin it while streaming.</source>
+        <translation>固定命令栏，使其在指针移开后仍然显示，而不是自动隐藏。你也可以在串流期间固定或取消固定。</translation>
+    </message>
+    <message>
         <location filename="../gui/SettingsView.qml" line="1254"/>
         <source>Discord Rich Presence integration</source>
         <translation>Discord Rich Presence 集成</translation>

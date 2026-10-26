@@ -14,6 +14,16 @@ OverlayManager::OverlayManager() :
 
     m_Overlays[OverlayType::OverlayStatusUpdate].color = {0xCC, 0x00, 0x00, 0xFF};
     m_Overlays[OverlayType::OverlayStatusUpdate].fontSize = 36;
+    m_Overlays[OverlayType::OverlayStatusUpdate].anchor = OverlayAnchor::AnchorBottomLeft;
+
+    // The command bar and its tooltip position themselves using the offsets
+    // that the command bar code sets, so they are always anchored to the top
+    // left corner of the window.
+    m_Overlays[OverlayType::OverlayCommandBar].anchor = OverlayAnchor::AnchorTopLeft;
+    m_Overlays[OverlayType::OverlayCommandBarTooltip].anchor = OverlayAnchor::AnchorTopLeft;
+    m_Overlays[OverlayType::OverlayCommandBarDialog].anchor = OverlayAnchor::AnchorTopLeft;
+
+    m_Overlays[OverlayType::OverlayKeyHints].anchor = OverlayAnchor::AnchorTopLeft;
 
     // While TTF will usually not be initialized here, it is valid for that not to
     // be the case, since Session destruction is deferred and could overlap with
@@ -64,6 +74,25 @@ void OverlayManager::updateOverlayText(OverlayType type, const char* text)
     setOverlayTextUpdated(type);
 }
 
+void OverlayManager::updateOverlaySurface(OverlayType type, SDL_Surface* surface)
+{
+    // Take ownership of the new surface by exchanging it with the old one. The
+    // renderer is told about the update, but it will not fetch the surface
+    // until it is ready to upload it.
+    SDL_Surface* oldSurface = (SDL_Surface*)SDL_AtomicSetPtr((void**)&m_Overlays[type].surface, surface);
+
+    // An overlay that has a staged surface is drawn from it rather than from
+    // its text, so make sure a stale text string cannot overwrite it.
+    m_Overlays[type].text[0] = 0;
+
+    notifyOverlayUpdated(type);
+
+    // Free the surface that the renderer did not pick up
+    if (oldSurface != nullptr) {
+        SDL_FreeSurface(oldSurface);
+    }
+}
+
 int OverlayManager::getOverlayMaxTextLength()
 {
     return sizeof(m_Overlays[0].text);
@@ -100,10 +129,47 @@ void OverlayManager::setOverlayState(OverlayType type, bool enabled)
         if (!enabled) {
             // Set the text to empty string on disable
             m_Overlays[type].text[0] = 0;
+
+            // Drop any staged surface that has not been picked up yet, so an
+            // overlay that was re-rendered while disabled does not reappear
+            SDL_Surface* staleSurface = (SDL_Surface*)SDL_AtomicSetPtr((void**)&m_Overlays[type].surface, nullptr);
+            if (staleSurface != nullptr) {
+                SDL_FreeSurface(staleSurface);
+            }
         }
 
         notifyOverlayUpdated(type);
     }
+}
+
+void OverlayManager::setOverlayAnchor(OverlayType type, OverlayAnchor anchor, int xOffset, int yOffset)
+{
+    m_Overlays[type].anchor = anchor;
+    m_Overlays[type].xOffset = xOffset;
+    m_Overlays[type].yOffset = yOffset;
+}
+
+SDL_Rect OverlayManager::getOverlayRegion(OverlayType type, int surfaceWidth, int surfaceHeight,
+                                          int windowWidth, int windowHeight)
+{
+    SDL_Rect rect;
+
+    switch (m_Overlays[type].anchor) {
+    case OverlayAnchor::AnchorBottomLeft:
+        rect.x = m_Overlays[type].xOffset;
+        rect.y = windowHeight - surfaceHeight - m_Overlays[type].yOffset;
+        break;
+    case OverlayAnchor::AnchorTopLeft:
+    default:
+        rect.x = m_Overlays[type].xOffset;
+        rect.y = m_Overlays[type].yOffset;
+        break;
+    }
+
+    rect.w = surfaceWidth;
+    rect.h = surfaceHeight;
+
+    return rect;
 }
 
 SDL_Color OverlayManager::getOverlayColor(OverlayType type)
@@ -122,48 +188,62 @@ void OverlayManager::notifyOverlayUpdated(OverlayType type)
         return;
     }
 
-    // Construct the required font to render the overlay
-    if (m_Overlays[type].font == nullptr) {
-        if (m_FontData.isEmpty()) {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                         "SDL overlay font failed to load");
-            return;
+    // Overlays that are rendered by the command bar already have a surface
+    // staged, so there is nothing to render here.
+    //
+    // Other overlays are plain text that we render ourselves with the bundled
+    // arcade font.
+    if (m_Overlays[type].text[0] != '\0') {
+        // Construct the required font to render the overlay
+        if (m_Overlays[type].font == nullptr) {
+            if (m_FontData.isEmpty()) {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                             "SDL overlay font failed to load");
+                return;
+            }
+
+            // m_FontData must stay around until the font is closed
+            m_Overlays[type].font = TTF_OpenFontRW(SDL_RWFromConstMem(m_FontData.constData(), m_FontData.size()),
+                                                   1,
+                                                   m_Overlays[type].fontSize);
+            if (m_Overlays[type].font == nullptr) {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                            "TTF_OpenFont() failed: %s",
+                            TTF_GetError());
+
+                // Can't proceed without a font
+                return;
+            }
         }
 
-        // m_FontData must stay around until the font is closed
-        m_Overlays[type].font = TTF_OpenFontRW(SDL_RWFromConstMem(m_FontData.constData(), m_FontData.size()),
-                                               1,
-                                               m_Overlays[type].fontSize);
-        if (m_Overlays[type].font == nullptr) {
-            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
-                        "TTF_OpenFont() failed: %s",
-                        TTF_GetError());
+        // Exchange the old surface with the new one
+        SDL_Surface* oldSurface = (SDL_Surface*)SDL_AtomicSetPtr(
+            (void**)&m_Overlays[type].surface,
+            m_Overlays[type].enabled ?
+                // The _Wrapped variant is required for line breaks to work
+                RenderTextOutlinedWrapped(m_Overlays[type].font,
+                                          m_Overlays[type].text,
+                                          m_Overlays[type].color,
+                                          {0, 0, 0, 255},
+                                          4,
+                                          1024)
+                : nullptr);
 
-            // Can't proceed without a font
-            return;
+        // Free the old surface
+        if (oldSurface != nullptr) {
+            SDL_FreeSurface(oldSurface);
         }
     }
-
-    // Exchange the old surface with the new one
-    SDL_Surface* oldSurface = (SDL_Surface*)SDL_AtomicSetPtr(
-        (void**)&m_Overlays[type].surface,
-        m_Overlays[type].enabled ?
-            // The _Wrapped variant is required for line breaks to work
-            RenderTextOutlinedWrapped(m_Overlays[type].font,
-                                      m_Overlays[type].text,
-                                      m_Overlays[type].color,
-                                      {0, 0, 0, 255},
-                                      4,
-                                      1024)
-            : nullptr);
+    else if (!m_Overlays[type].enabled) {
+        // Release any staged surface for a disabled overlay
+        SDL_Surface* oldSurface = (SDL_Surface*)SDL_AtomicSetPtr((void**)&m_Overlays[type].surface, nullptr);
+        if (oldSurface != nullptr) {
+            SDL_FreeSurface(oldSurface);
+        }
+    }
 
     // Notify the renderer
     m_Renderer->notifyOverlayUpdated(type);
-
-    // Free the old surface
-    if (oldSurface != nullptr) {
-        SDL_FreeSurface(oldSurface);
-    }
 }
 
 SDL_Surface* OverlayManager::RenderTextOutlinedWrapped(TTF_Font* font, const char* text, SDL_Color textColor, SDL_Color outlineColor, int outlineWidth, int wrapWidth) {
@@ -207,5 +287,3 @@ SDL_Surface* OverlayManager::RenderTextOutlinedWrapped(TTF_Font* font, const cha
     SDL_FreeSurface(textSurface);
     return outlineSurface;
 }
-
-

@@ -152,6 +152,10 @@ public:
 
     void updatePointerRegionLock();
 
+    // Re-reads the configured mouse sensitivity and applies it to the running
+    // stream. Used by the command bar when it changes the value.
+    void applyMouseSensitivity();
+
     static
     QString getUnmappedGamepads();
 
@@ -171,6 +175,7 @@ private:
         KeyComboIncreaseMouseSensitivity,
         KeyComboDecreaseMouseSensitivity,
         KeyComboToggleMouseSensitivity,
+        KeyComboToggleCommandBar,
         KeyComboMax
     };
 

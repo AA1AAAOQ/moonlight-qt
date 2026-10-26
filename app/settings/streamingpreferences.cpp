@@ -34,6 +34,9 @@
 #define SER_ABSTOUCHMODE "abstouchmode"
 #define SER_MOUSESENSITIVITY "mousesensitivity"
 #define SER_MOUSESENSITIVITYENABLED "mousesensitivityenabled"
+#define SER_COMMANDBARENABLED "commandbarenabled"
+#define SER_COMMANDBARPINNED "commandbarpinned"
+#define SER_SHOWKEYHINTS "showkeyhintsonstreamstart"
 #define SER_STARTWINDOWED "startwindowed"
 #define SER_FRAMEPACING "framepacing"
 #define SER_CONNWARNINGS "connwarnings"
@@ -142,6 +145,9 @@ void StreamingPreferences::reload()
     mouseSensitivity = clampMouseSensitivity(settings.value(SER_MOUSESENSITIVITY,
                                                              getDefaultMouseSensitivity()).toInt());
     mouseSensitivityEnabled = settings.value(SER_MOUSESENSITIVITYENABLED, true).toBool();
+    commandBarEnabled = settings.value(SER_COMMANDBARENABLED, true).toBool();
+    commandBarPinned = settings.value(SER_COMMANDBARPINNED, false).toBool();
+    showKeyHintsOnStreamStart = settings.value(SER_SHOWKEYHINTS, true).toBool();
     framePacing = settings.value(SER_FRAMEPACING, false).toBool();
     connectionWarnings = settings.value(SER_CONNWARNINGS, true).toBool();
     configurationWarnings = settings.value(SER_CONFWARNINGS, true).toBool();
@@ -369,6 +375,9 @@ void StreamingPreferences::save()
     settings.setValue(SER_KEEPAWAKE, keepAwake);
     settings.setValue(SER_MOUSESENSITIVITY, mouseSensitivity);
     settings.setValue(SER_MOUSESENSITIVITYENABLED, mouseSensitivityEnabled);
+    settings.setValue(SER_COMMANDBARENABLED, commandBarEnabled);
+    settings.setValue(SER_COMMANDBARPINNED, commandBarPinned);
+    settings.setValue(SER_SHOWKEYHINTS, showKeyHintsOnStreamStart);
 }
 
 int StreamingPreferences::getDefaultBitrate(int width, int height, int fps, bool yuv444)

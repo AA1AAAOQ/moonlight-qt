@@ -658,19 +658,15 @@ void DXVA2Renderer::notifyOverlayUpdated(Overlay::OverlayType type)
 
     SDL_FRect renderRect = {};
 
-    if (type == Overlay::OverlayStatusUpdate) {
-        // Bottom Left
-        renderRect.x = 0;
-        renderRect.y = m_DisplayHeight - newSurface->h;
-    }
-    else if (type == Overlay::OverlayDebug) {
-        // Top left
-        renderRect.x = 0;
-        renderRect.y = 0;
-    }
+    // The overlay regions use the top-left corner of the window as their
+    // origin, while Direct3D puts the origin in the bottom-left corner.
+    SDL_Rect overlayRegion = Session::get()->getOverlayManager().getOverlayRegion(
+                type, newSurface->w, newSurface->h, m_DisplayWidth, m_DisplayHeight);
 
-    renderRect.w = newSurface->w;
-    renderRect.h = newSurface->h;
+    renderRect.x = (float)overlayRegion.x;
+    renderRect.y = (float)(m_DisplayHeight - (overlayRegion.y + overlayRegion.h));
+    renderRect.w = (float)overlayRegion.w;
+    renderRect.h = (float)overlayRegion.h;
 
     // The surface is no longer required
     SDL_FreeSurface(newSurface);

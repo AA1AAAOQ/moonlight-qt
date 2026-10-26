@@ -154,6 +154,11 @@ SdlInputHandler::SdlInputHandler(StreamingPreferences& prefs, int streamWidth, i
     m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].scanCode = SDL_SCANCODE_A;
     m_SpecialKeyCombos[KeyComboToggleMouseSensitivity].enabled = true;
 
+    m_SpecialKeyCombos[KeyComboToggleCommandBar].keyCombo = KeyComboToggleCommandBar;
+    m_SpecialKeyCombos[KeyComboToggleCommandBar].keyCode = SDLK_b;
+    m_SpecialKeyCombos[KeyComboToggleCommandBar].scanCode = SDL_SCANCODE_B;
+    m_SpecialKeyCombos[KeyComboToggleCommandBar].enabled = WMUtils::isRunningDesktopEnvironment();
+
     m_OldIgnoreDevices = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES);
     m_OldIgnoreDevicesExcept = SDL_GetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT);
 

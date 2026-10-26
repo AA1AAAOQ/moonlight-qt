@@ -81,13 +81,25 @@ void SdlInputHandler::adjustMouseSensitivity(int stepDirection)
     prefs->save();
 
     // Apply the change to the running stream
-    m_MouseSensitivity = newSensitivity / 100.0f;
+    applyMouseSensitivity();
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "Mouse sensitivity changed to %d%%",
                 newSensitivity);
 
     showMouseSensitivityOverlay();
+}
+
+void SdlInputHandler::applyMouseSensitivity()
+{
+    StreamingPreferences* prefs = StreamingPreferences::get();
+
+    m_MouseSensitivity = prefs->mouseSensitivityEnabled ? prefs->mouseSensitivity / 100.0f : 1.0f;
+
+    // Discard any fractional movement from the previous multiplier, so a change
+    // cannot carry stale sub-pixel motion into the new one.
+    m_MouseSensitivityRemainderX = 0.0f;
+    m_MouseSensitivityRemainderY = 0.0f;
 }
 
 void SdlInputHandler::showMouseSensitivityOverlay()
@@ -303,13 +315,24 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
         prefs->save();
 
         // Apply the change to the running stream
-        m_MouseSensitivity = prefs->mouseSensitivityEnabled ? prefs->mouseSensitivity / 100.0f : 1.0f;
+        applyMouseSensitivity();
 
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                     "Mouse sensitivity adjustment %s",
                     prefs->mouseSensitivityEnabled ? "enabled" : "disabled");
 
         showMouseSensitivityOverlay();
+        break;
+    }
+
+    case KeyComboToggleCommandBar:
+    {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected command bar toggle combo");
+
+        if (Session::get() != nullptr && Session::get()->getCommandBar() != nullptr) {
+            Session::get()->getCommandBar()->toggleVisible();
+        }
         break;
     }
 

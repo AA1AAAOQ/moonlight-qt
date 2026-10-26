@@ -754,21 +754,15 @@ void VAAPIRenderer::notifyOverlayUpdated(Overlay::OverlayType type)
             return;
         }
 
-        SDL_Rect overlayRect;
+        // Subpicture coordinates are relative to the decoded surface, which is
+        // what gets scaled into the window when it is displayed. The surface is
+        // the reference frame for overlays, exactly as it was for the original
+        // bottom-left status overlay.
+        int windowWidth, windowHeight;
+        SDL_GetWindowSize(m_Window, &windowWidth, &windowHeight);
 
-        if (type == Overlay::OverlayStatusUpdate) {
-            // Bottom Left
-            overlayRect.x = 0;
-            overlayRect.y = -newSurface->h;
-        }
-        else if (type == Overlay::OverlayDebug) {
-            // Top left
-            overlayRect.x = 0;
-            overlayRect.y = 0;
-        }
-
-        overlayRect.w = newSurface->w;
-        overlayRect.h = newSurface->h;
+        SDL_Rect overlayRect = Session::get()->getOverlayManager().getOverlayRegion(
+                    type, newSurface->w, newSurface->h, windowWidth, windowHeight);
 
         // Surface data is no longer needed
         SDL_FreeSurface(newSurface);

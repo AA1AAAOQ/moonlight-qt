@@ -200,25 +200,17 @@ void EGLRenderer::renderOverlay(Overlay::OverlayType type, int viewportWidth, in
             glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, 0);
         }
 
+        SDL_Rect overlayRegion = Session::get()->getOverlayManager().getOverlayRegion(
+                    type, newSurface->w, newSurface->h, viewportWidth, viewportHeight);
+
         SDL_FRect overlayRect;
 
         // These overlay positions differ from the other renderers because OpenGL
         // places the origin in the lower-left corner instead of the upper-left.
-        if (type == Overlay::OverlayStatusUpdate) {
-            // Bottom Left
-            overlayRect.x = 0;
-            overlayRect.y = 0;
-        }
-        else if (type == Overlay::OverlayDebug) {
-            // Top left
-            overlayRect.x = 0;
-            overlayRect.y = viewportHeight - newSurface->h;
-        } else {
-            SDL_assert(false);
-        }
-
-        overlayRect.w = newSurface->w;
-        overlayRect.h = newSurface->h;
+        overlayRect.x = (float)overlayRegion.x;
+        overlayRect.y = (float)(viewportHeight - (overlayRegion.y + overlayRegion.h));
+        overlayRect.w = (float)overlayRegion.w;
+        overlayRect.h = (float)overlayRegion.h;
 
         SDL_FreeSurface(newSurface);
 

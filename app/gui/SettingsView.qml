@@ -1433,6 +1433,60 @@ Flickable {
                     }
                 }
 
+                CheckBox {
+                    id: showKeyHintsCheck
+                    hoverEnabled: true
+                    width: parent.width
+                    text: qsTr("Show the keyboard shortcuts when a stream starts")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.showKeyHintsOnStreamStart
+                    onCheckedChanged: {
+                        StreamingPreferences.showKeyHintsOnStreamStart = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 10000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Displays a list of the keyboard shortcuts at the start of every stream. You can also turn it off from the list itself.")
+                }
+
+                CheckBox {
+                    id: commandBarEnabledCheck
+                    hoverEnabled: true
+                    width: parent.width
+                    text: qsTr("Show the command bar while streaming")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.commandBarEnabled
+                    onCheckedChanged: {
+                        StreamingPreferences.commandBarEnabled = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 10000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("The command bar is a small toolbar at the top of the screen that provides window controls, mouse sensitivity and other actions while streaming.") + " " +
+                                  qsTr("It is shown in full-screen mode and hidden automatically in windowed mode.") + "\n\n" +
+                                  qsTr("Move the pointer to the top edge of the screen to reveal it, or use Ctrl+Alt+Shift+B while the mouse is captured.")
+                }
+
+                CheckBox {
+                    id: commandBarPinnedCheck
+                    hoverEnabled: true
+                    width: parent.width
+                    enabled: commandBarEnabledCheck.checked
+                    text: qsTr("Keep the command bar on screen")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.commandBarPinned
+                    onCheckedChanged: {
+                        StreamingPreferences.commandBarPinned = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 10000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Pins the command bar so it stays visible instead of hiding when the pointer moves away. You can also pin and unpin it while streaming.")
+                }
+
                 Row {
                     spacing: 5
                     width: parent.width

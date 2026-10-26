@@ -1561,21 +1561,10 @@ void DrmRenderer::notifyOverlayUpdated(Overlay::OverlayType type)
     SDL_Surface* newSurface = Session::get()->getOverlayManager().getUpdatedOverlaySurface(type);
     if (newSurface != nullptr) {
         uint32_t dumbBuffer, fbId;
-        SDL_Rect overlayRect;
 
-        if (type == Overlay::OverlayStatusUpdate) {
-            // Bottom Left
-            overlayRect.x = 0;
-            overlayRect.y = m_OutputRect.h - newSurface->h;
-        }
-        else if (type == Overlay::OverlayDebug) {
-            // Top left
-            overlayRect.x = 0;
-            overlayRect.y = 0;
-        }
-
-        overlayRect.w = newSurface->w;
-        overlayRect.h = newSurface->h;
+        // Overlay timings can differ, so read the region from the manager
+        SDL_Rect overlayRect = Session::get()->getOverlayManager().getOverlayRegion(
+                    type, newSurface->w, newSurface->h, m_OutputRect.w, m_OutputRect.h);
 
         // Try to let the display controller composite for us
         if (!m_OverlayCompositionSurface) {

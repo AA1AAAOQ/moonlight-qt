@@ -1026,18 +1026,17 @@ void PlVkRenderer::renderFrame(AVFrame *frame)
 
         // We have an overlay to draw
         if (m_Overlays[i].hasOverlay) {
-            // Position the overlay
+            // Position the overlay in the destination frame
             overlayParts[i].src = { 0, 0, (float)m_Overlays[i].overlay.tex->params.w, (float)m_Overlays[i].overlay.tex->params.h };
-            if (i == Overlay::OverlayStatusUpdate) {
-                // Bottom Left
-                overlayParts[i].dst.x0 = 0;
-                overlayParts[i].dst.y0 = SDL_max(0, targetFrame.crop.y1 - overlayParts[i].src.y1);
-            }
-            else if (i == Overlay::OverlayDebug) {
-                // Top left
-                overlayParts[i].dst.x0 = 0;
-                overlayParts[i].dst.y0 = 0;
-            }
+
+            SDL_Rect overlayRegion = Session::get()->getOverlayManager().getOverlayRegion(
+                        (Overlay::OverlayType)i,
+                        (int)overlayParts[i].src.x1, (int)overlayParts[i].src.y1,
+                        (int)(targetFrame.crop.x1 - targetFrame.crop.x0),
+                        (int)(targetFrame.crop.y1 - targetFrame.crop.y0));
+
+            overlayParts[i].dst.x0 = (float)(targetFrame.crop.x0 + overlayRegion.x);
+            overlayParts[i].dst.y0 = (float)(targetFrame.crop.y0 + overlayRegion.y);
             overlayParts[i].dst.x1 = overlayParts[i].dst.x0 + overlayParts[i].src.x1;
             overlayParts[i].dst.y1 = overlayParts[i].dst.y0 + overlayParts[i].src.y1;
 
